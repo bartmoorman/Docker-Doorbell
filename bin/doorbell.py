@@ -4,16 +4,16 @@ import os, requests
 from datetime import datetime
 from time import sleep
 
-buttonPin = os.getenv('BUTTON_PIN')
+buttonPin = int(os.getenv('BUTTON_PIN'))
 pressLength = 100 / 1000
 
 synoURL = os.getenv('SYNO_URL')
 synoAccount = os.getenv('SYNO_ACCOUNT')
 synoPasswd = os.getenv('SYNO_PASSWD')
-synoCameraId = os.getenv('SYNO_CAMERA_ID')
-synoCameraStream = os.getenv('SYNO_CAMERA_STREAM')
+synoCameraId = int(os.getenv('SYNO_CAMERA_ID'))
+synoCameraStream = int(os.getenv('SYNO_CAMERA_STREAM'))
 
-pushUsers = os.getenv('PUSHOVER_USERS')
+pushUsers = os.getenv('PUSHOVER_USERS').split(',')
 
 print('{0} - Setting up GPIO'.format(datetime.now()))
 GPIO.setmode(GPIO.BCM)
@@ -43,7 +43,7 @@ try:
         except:
           request = None
 
-        for pushUser in pushUsers.split(','):
+        for pushUser in pushUsers:
           pushUser = pushUser.split(':')
           print('{0} - Sending notification to {1}'.format(datetime.now(), pushUser[0]))
 
