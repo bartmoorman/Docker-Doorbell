@@ -4,7 +4,14 @@ ENV BUTTON_PIN="17"
 
 RUN apk add --no-cache \
     python \
-    py-requests
+    py-pip \
+    py-requests \
+    py-setuptools \
+ && apk add --no-cache --virtual .build-deps \
+    build-base \
+    python-dev \
+ && pip install RPi.GPIO \
+ && apk del --no-cache .build-deps
 
 COPY bin/ /usr/local/bin/
 
