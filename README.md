@@ -12,7 +12,7 @@ docker run \
 --env "SYNO_CAMERA_ID=12" \
 --env "SYNO_CAMERA_STREAM=1" \
 --env "PUSHOVER_USERS=alias:token:user_or_group_key:priority" \
-bmoorman/doorbell:latest
+bmoorman/doorbell:armhf-latest
 ```
 
 ### Docker Compose
@@ -20,7 +20,7 @@ bmoorman/doorbell:latest
 version: "3.7"
 services:
   doorbell:
-    image: bmoorman/doorbell:latest
+    image: bmoorman/doorbell:armhf-latest
     container_name: doorbell
     environment:
       - SYNO_URL=http://**sub.do.main**:5000
