@@ -1,7 +1,5 @@
 FROM bmoorman/alpine:armhf-3.8
 
-ENV BUTTON_PIN="17"
-
 RUN apk add --no-cache \
     python \
     py-pip \

@@ -11,7 +11,7 @@ synoURL = os.getenv('SYNO_URL')
 synoAccount = os.getenv('SYNO_ACCOUNT')
 synoPasswd = os.getenv('SYNO_PASSWD')
 synoCameraId = int(os.getenv('SYNO_CAMERA_ID'))
-synoCameraStream = int(os.getenv('SYNO_CAMERA_STREAM'))
+synoCameraStream = int(os.getenv('SYNO_CAMERA_STREAM', 1))
 
 pushUsers = os.getenv('PUSHOVER_USERS').split(',')
 
