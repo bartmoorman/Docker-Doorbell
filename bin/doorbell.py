@@ -1,30 +1,30 @@
 #!/usr/bin/python
 import os, requests
+from requests.auth import HTTPDigestAuth
 from time import sleep
 from datetime import datetime
 import RPi.GPIO as GPIO
 
 BUTTON_PIN = os.getenv('BUTTON_PIN')
-SYNO_URL = os.getenv('SYNO_URL')
-SYNO_ACCOUNT = os.getenv('SYNO_ACCOUNT')
-SYNO_PASSWD = os.getenv('SYNO_PASSWD')
-SYNO_CAMERA_ID = os.getenv('SYNO_CAMERA_ID')
+CAM_URL = os.getenv('CAM_URL')
+CAM_USER = os.getenv('CAM_USER')
+CAM_PASS = os.getenv('CAM_PASS')
 PUSHOVER_USERS = os.getenv('PUSHOVER_USERS')
 
 print '''Starting Doorbell with the following settings:
 BUTTON_PIN: {0}
-SYNO_URL: {1}
-SYNO_ACCOUNT: {2}
-SYNO_PASSWD: {3}
-SYNO_CAMERA_ID: {4}
-PUSHOVER_USERS: {5}
-'''.format(BUTTON_PIN or '[unset]', SYNO_URL or '[unset]', SYNO_ACCOUNT or '[unset]', '[set]' if SYNO_PASSWD else '[unset]', SYNO_CAMERA_ID or '[unset]', PUSHOVER_USERS or '[unset]')
+CAM_URL: {1}
+CAM_USER: {2}
+CAM_PASS: {3}
+PUSHOVER_USERS: {4}
+'''.format(BUTTON_PIN or '[unset]', CAM_URL or '[unset]', CAM_USER or '[unset]', '[redacted]' if CAM_PASS else '[unset]', PUSHOVER_USERS or '[unset]')
 
-if SYNO_URL is not None and SYNO_ACCOUNT is not None and SYNO_PASSWD is not None and SYNO_CAMERA_ID is not None:
-  SYNO = True
+if CAM_URL is not None:
+  print('{0} - Camera is configured. Authentication may be required.'.format(datetime.now()))
+  CAM = True
 else:
-  print('{0} - Syno is not configured. Notifications will NOT include a snapshot.'.format(datetime.now()))
-  SYNO = False
+  print('{0} - Camera is not configured. Notifications will NOT include a picture.'.format(datetime.now()))
+  CAM = False
 
 if PUSHOVER_USERS is not None:
   PUSHOVER = True
@@ -36,13 +36,17 @@ print('{0} - Setting up GPIO'.format(datetime.now()))
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(int(BUTTON_PIN), GPIO.IN)
 
-print('{0} - Setting up request sessions'.format(datetime.now()))
-SYNO_SESSION = requests.Session()
+print('{0} - Setting up sessions'.format(datetime.now()))
+CAM_SESSION = requests.Session()
 PUSHOVER_SESSION = requests.Session()
 
-try:
-  print('{0} - Startup complete'.format(datetime.now()))
+if CAM_USER is not None and CAM_PASS is not None:
+  print('{0} - Authenticating camera session'.format(datetime.now()))
+  CAM_SESSION.auth = HTTPDigestAuth(CAM_USER, CAM_PASS)
 
+print('{0} - Startup complete'.format(datetime.now()))
+
+try:
   while True:
     if BUTTON_PIN is not None:
       if GPIO.wait_for_edge(int(BUTTON_PIN), GPIO.RISING, timeout=5000):
@@ -53,13 +57,10 @@ try:
           print('{0} - Button was pressed'.format(datetime.now()))
           attachment = None
 
-          if SYNO and PUSHOVER:
+          if CAM and PUSHOVER:
             try:
-              print('{0} - Logging in to Surveillance Station'.format(datetime.now()))
-              SYNO_SESSION.post('{0}/webapi/auth.cgi'.format(SYNO_URL), data={'api': 'SYNO.API.Auth', 'method': 'Login', 'version': 6, 'account': SYNO_ACCOUNT, 'passwd': SYNO_PASSWD, 'session': 'SurveillanceStation'}, timeout=2.5)
-
-              print('{0} - Retrieving snapshot from Surveillance Station'.format(datetime.now()))
-              response = SYNO_SESSION.post('{0}/webapi/entry.cgi'.format(SYNO_URL), data={'api': 'SYNO.SurveillanceStation.Camera', 'method': 'GetSnapshot', 'version': 9, 'id': int(SYNO_CAMERA_ID)}, timeout=2.5)
+              print('{0} - Retrieving picture from camera'.format(datetime.now()))
+              response = CAM_SESSION.get(CAM_URL, timeout=5.0)
               attachment = response.content
             except requests.exceptions.RequestException as exception:
               print('{0} - {1}'.format(datetime.now(), exception))
