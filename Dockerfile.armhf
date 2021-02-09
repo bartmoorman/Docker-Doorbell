@@ -1,13 +1,14 @@
-FROM bmoorman/alpine:armhf-3.13
+FROM bmoorman/alpine:armhf-3.12
 
 RUN apk add --no-cache \
-    python \
-    py-requests \
+    python3 \
+    py3-requests \
  && apk add --no-cache --virtual .build-deps \
     build-base \
-    py-pip \
-    python-dev \
- && pip install RPi.GPIO \
+    py3-pip \
+    py3-wheel \
+    python3-dev \
+ && pip3 install RPi.GPIO \
  && apk del --no-cache .build-deps
 
 COPY bin/ /usr/local/bin/
