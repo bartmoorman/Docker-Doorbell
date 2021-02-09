@@ -1,4 +1,4 @@
-FROM bmoorman/alpine:armhf-3.8
+FROM bmoorman/alpine:armhf-3.13
 
 RUN apk add --no-cache \
     python \
