@@ -1,0 +1,35 @@
+stages:
+  - build
+  - push
+  - cleanup
+
+variables:
+  DOCKER_HUB_IMAGE: ${DOCKER_HUB_USERNAME}/${CI_PROJECT_NAME}:armhf-${CI_COMMIT_REF_NAME}
+  GITLAB_IMAGE: ${CI_REGISTRY_IMAGE}:armhf-${CI_COMMIT_REF_NAME}
+
+default:
+  tags:
+    - arm
+  before_script:
+    - docker info
+    - docker login --username ${DOCKER_HUB_USERNAME} --password ${DOCKER_HUB_PASSWORD}
+    - docker login --username ${CI_REGISTRY_USER} --password ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
+  after_script:
+    - docker logout
+    - docker logout ${CI_REGISTRY}
+
+build:
+  stage: build
+  script:
+    - docker build --file Dockerfile.armhf --pull --tag ${DOCKER_HUB_IMAGE} --tag ${GITLAB_IMAGE} .
+
+push:
+  stage: push
+  script:
+    - docker push ${DOCKER_HUB_IMAGE}
+    - docker push ${GITLAB_IMAGE}
+
+cleanup:
+  stage: cleanup
+  script:
+    - docker image rm ${DOCKER_HUB_IMAGE} ${GITLAB_IMAGE}
