@@ -47,6 +47,7 @@ if CAM_USER is not None and CAM_PASS is not None:
 print('{0} - Startup complete'.format(datetime.now()))
 
 try:
+  pids = []
   while True:
     if BUTTON_PIN is not None:
       if GPIO.wait_for_edge(int(BUTTON_PIN), GPIO.RISING, timeout=5000):
@@ -55,29 +56,54 @@ try:
 
         if GPIO.input(int(BUTTON_PIN)) == GPIO.HIGH:
           print('{0} - Button was pressed'.format(datetime.now()))
-          attachment = None
-
-          if CAM and PUSHOVER:
-            try:
-              print('{0} - Retrieving picture from camera'.format(datetime.now()))
-              response = CAM_SESSION.get(CAM_URL, timeout=5.0)
-              attachment = response.content
-            except requests.exceptions.RequestException as exception:
-              print('{0} - {1}'.format(datetime.now(), exception))
 
           if PUSHOVER:
-            for PUSHOVER_USER in PUSHOVER_USERS.split(','):
-              PUSHOVER_USER = PUSHOVER_USER.split(':')
+            pid = os.fork()
 
-              try:
-                print('{0} - Sending notification to {1}'.format(datetime.now(), PUSHOVER_USER[0]))
-                PUSHOVER_SESSION.post('https://api.pushover.net/1/messages.json', data={'token': PUSHOVER_USER[1], 'user': PUSHOVER_USER[2], 'priority': PUSHOVER_USER[3], 'message': 'Someone is at the door!'}, files={'attachment': attachment or ''}, timeout=5.0)
-              except requests.exceptions.RequestException as exception:
-                print('{0} - {1}'.format(datetime.now(), exception))
+            if pid == 0:
+              for PUSHOVER_USER in PUSHOVER_USERS.split(','):
+                PUSHOVER_USER = PUSHOVER_USER.split(':')
+
+                try:
+                  print('{0} - Sending notification to {1}'.format(datetime.now(), PUSHOVER_USER[0]))
+                  PUSHOVER_SESSION.post('https://api.pushover.net/1/messages.json', data={'token': PUSHOVER_USER[1], 'user': PUSHOVER_USER[2], 'priority': PUSHOVER_USER[3], 'message': 'Someone is at the door!\nPicture should follow shortly.'}, timeout=5.0)
+                except requests.exceptions.RequestException as exception:
+                  print('{0} - {1}'.format(datetime.now(), exception))
+              os._exit(0)
+            else:
+              pids.append(pid)
           else:
             print('{0} - Someone is at the door!'.format(datetime.now()))
+
+          if CAM and PUSHOVER:
+            pid = os.fork()
+
+            if pid == 0:
+              try:
+                print('{0} - Retrieving picture from camera'.format(datetime.now()))
+                response = CAM_SESSION.get(CAM_URL, timeout=5.0)
+                attachment = response.content
+
+                for PUSHOVER_USER in PUSHOVER_USERS.split(','):
+                  PUSHOVER_USER = PUSHOVER_USER.split(':')
+
+                  try:
+                    print('{0} - Sending picture to {1}'.format(datetime.now(), PUSHOVER_USER[0]))
+                    PUSHOVER_SESSION.post('https://api.pushover.net/1/messages.json', data={'token': PUSHOVER_USER[1], 'user': PUSHOVER_USER[2], 'priority': PUSHOVER_USER[3], 'message': 'See who is at the door!'}, files={'attachment': attachment}, timeout=5.0)
+                  except requests.exceptions.RequestException as exception:
+                    print('{0} - {1}'.format(datetime.now(), exception))
+              except requests.exceptions.RequestException as exception:
+                print('{0} - {1}'.format(datetime.now(), exception))
+              os._exit(0)
+            else:
+              pids.append(pid)
         else:
           print('{0} - Ignoring; this was probably interference'.format(datetime.now()))
+
+      for cpid in pids:
+        spid, status = os.waitpid(cpid, os.WNOHANG)
+        if spid == cpid:
+          pids.remove(cpid)
     else:
       print('{0} - BUTTON_PIN is required.'.format(datetime.now()))
       sleep(60)
