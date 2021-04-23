@@ -61,14 +61,13 @@ try:
             pid = os.fork()
 
             if pid == 0:
-              for PUSHOVER_USER in PUSHOVER_USERS.split(','):
-                PUSHOVER_USER = PUSHOVER_USER.split(':')
-
-                try:
+              try:
+                for PUSHOVER_USER in PUSHOVER_USERS.split(','):
+                  PUSHOVER_USER = PUSHOVER_USER.split(':')
                   print('{0} - Sending notification to {1}'.format(datetime.now(), PUSHOVER_USER[0]))
                   PUSHOVER_SESSION.post('https://api.pushover.net/1/messages.json', data={'token': PUSHOVER_USER[1], 'user': PUSHOVER_USER[2], 'priority': PUSHOVER_USER[3], 'message': 'Someone is at the door!\nPicture should follow shortly.'}, timeout=5.0)
-                except requests.exceptions.RequestException as exception:
-                  print('{0} - {1}'.format(datetime.now(), exception))
+              except requests.exceptions.RequestException as exception:
+                print('{0} - {1}'.format(datetime.now(), exception))
               os._exit(0)
             else:
               pids.append(pid)
@@ -86,12 +85,8 @@ try:
 
                 for PUSHOVER_USER in PUSHOVER_USERS.split(','):
                   PUSHOVER_USER = PUSHOVER_USER.split(':')
-
-                  try:
-                    print('{0} - Sending picture to {1}'.format(datetime.now(), PUSHOVER_USER[0]))
-                    PUSHOVER_SESSION.post('https://api.pushover.net/1/messages.json', data={'token': PUSHOVER_USER[1], 'user': PUSHOVER_USER[2], 'priority': PUSHOVER_USER[3], 'message': 'See who is at the door!'}, files={'attachment': attachment}, timeout=5.0)
-                  except requests.exceptions.RequestException as exception:
-                    print('{0} - {1}'.format(datetime.now(), exception))
+                  print('{0} - Sending picture to {1}'.format(datetime.now(), PUSHOVER_USER[0]))
+                  PUSHOVER_SESSION.post('https://api.pushover.net/1/messages.json', data={'token': PUSHOVER_USER[1], 'user': PUSHOVER_USER[2], 'priority': PUSHOVER_USER[3], 'message': 'See who is at the door!'}, files={'attachment': attachment}, timeout=5.0)
               except requests.exceptions.RequestException as exception:
                 print('{0} - {1}'.format(datetime.now(), exception))
               os._exit(0)
