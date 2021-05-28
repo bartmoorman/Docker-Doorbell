@@ -1,9 +1,9 @@
-FROM bmoorman/alpine:3.8
+FROM bmoorman/alpine:3.13
 
 RUN apk add --no-cache \
     python3 \
-    py3-rpigpio \
-    py3-requests
+    py3-requests \
+    py3-rpigpio
 
 COPY bin/ /usr/local/bin/
 
