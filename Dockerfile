@@ -1,14 +1,9 @@
 FROM bmoorman/alpine:3.8
 
 RUN apk add --no-cache \
-    python \
-    py-requests \
- && apk add --no-cache --virtual .build-deps \
-    build-base \
-    py-pip \
-    python-dev \
- && pip install RPi.GPIO \
- && apk del --no-cache .build-deps
+    python3 \
+    py3-rpigpio \
+    py3-requests
 
 COPY bin/ /usr/local/bin/
 

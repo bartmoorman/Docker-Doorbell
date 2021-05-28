@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import os, requests
 from requests.auth import HTTPDigestAuth
 from time import sleep
@@ -11,13 +11,13 @@ CAM_USER = os.getenv('CAM_USER')
 CAM_PASS = os.getenv('CAM_PASS')
 PUSHOVER_USERS = os.getenv('PUSHOVER_USERS')
 
-print '''Starting Doorbell with the following settings:
+print('''Starting Doorbell with the following settings:
 BUTTON_PIN: {0}
 CAM_URL: {1}
 CAM_USER: {2}
 CAM_PASS: {3}
 PUSHOVER_USERS: {4}
-'''.format(BUTTON_PIN or '[unset]', CAM_URL or '[unset]', CAM_USER or '[unset]', '[redacted]' if CAM_PASS else '[unset]', PUSHOVER_USERS or '[unset]')
+'''.format(BUTTON_PIN or '[unset]', CAM_URL or '[unset]', CAM_USER or '[unset]', '[redacted]' if CAM_PASS else '[unset]', PUSHOVER_USERS or '[unset]'))
 
 if CAM_URL is not None:
   print('{0} - Camera is configured. Authentication may be required.'.format(datetime.now()))
