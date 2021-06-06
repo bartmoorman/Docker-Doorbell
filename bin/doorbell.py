@@ -1,11 +1,11 @@
-#!/usr/bin/python3
+#!/usr/bin/python3 -u
 import os, requests
 from requests.auth import HTTPDigestAuth
 from time import sleep
 from datetime import datetime
-import RPi.GPIO as GPIO
+import pigpio
 
-BUTTON_PIN = os.getenv('BUTTON_PIN')
+BUTTON_PIN = os.getenv('BUTTON_PIN', 17)
 CAM_URL = os.getenv('CAM_URL')
 CAM_USER = os.getenv('CAM_USER')
 CAM_PASS = os.getenv('CAM_PASS')
@@ -33,8 +33,8 @@ else:
   PUSHOVER = False
 
 print('{0} - Setting up GPIO'.format(datetime.now()))
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(int(BUTTON_PIN), GPIO.IN)
+GPIO = pigpio.pi()
+GPIO.set_mode(int(BUTTON_PIN), pigpio.INPUT)
 
 print('{0} - Setting up sessions'.format(datetime.now()))
 CAM_SESSION = requests.Session()
@@ -50,11 +50,11 @@ try:
   pids = []
   while True:
     if BUTTON_PIN is not None:
-      if GPIO.wait_for_edge(int(BUTTON_PIN), GPIO.RISING, timeout=5000):
+      if GPIO.wait_for_edge(int(BUTTON_PIN), pigpio.RISING_EDGE, 5.0):
         print('{0} - Rising edge detected'.format(datetime.now()))
         sleep(100 / 1000)
 
-        if GPIO.input(int(BUTTON_PIN)) == GPIO.HIGH:
+        if GPIO.read(int(BUTTON_PIN)) == pigpio.HIGH:
           print('{0} - Button was pressed'.format(datetime.now()))
 
           if PUSHOVER:
@@ -104,4 +104,4 @@ try:
       sleep(60)
 finally:
   print('{0} - Cleaning up GPIO'.format(datetime.now()))
-  GPIO.cleanup()
+  GPIO.stop()
