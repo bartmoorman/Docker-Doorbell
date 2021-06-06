@@ -50,7 +50,7 @@ try:
   pids = []
   while True:
     if BUTTON_PIN is not None:
-      if GPIO.wait_for_edge(int(BUTTON_PIN), pigpio.RISING_EDGE, 5.0):
+      if GPIO.wait_for_edge(int(BUTTON_PIN), pigpio.RISING_EDGE, wait_timeout=5.0):
         print('{0} - Rising edge detected'.format(datetime.now()))
         sleep(100 / 1000)
 
