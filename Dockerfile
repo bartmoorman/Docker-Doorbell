@@ -1,4 +1,4 @@
-FROM bmoorman/alpine:3.12
+FROM bmoorman/alpine:3.15
 
 RUN apk add --no-cache \
     python3 \
